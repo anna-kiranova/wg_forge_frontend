@@ -1,17 +1,13 @@
 // this is an example of improting data from JSON
 import orders from '../data/orders.json';
+import users from '../data/users.json';
+import companies from '../data/companies.json';
 
 export default (function() {
-    // YOUR CODE GOES HERE
-    // next line is for example only
-    //document.getElementById("app").innerHTML = "<h1>Hello WG Forge " + orders.length + "</h1>";
-
-    function createTable() {
-        let app = document.getElementById('app');
-        let table = document.createElement('table');
-        let thead = document.createElement('thead');
-        let tbody = document.createElement('tbody');
-        thead.innerHTML = `
+    let app = document.getElementById('app');
+    let table = document.createElement('table');
+    table.innerHTML = `
+        <thead>
             <tr>
                 <th>Transaction ID</th>
                 <th>User Info</th>
@@ -21,12 +17,10 @@ export default (function() {
                 <th>Card Type</th>
                 <th>Location</th>
             </tr>
-        `;
-        table.appendChild(thead);
-        table.appendChild(tbody);
-        app.appendChild(table);
-    }
-    createTable();
+        </thead>
+        <tbody></tbody>
+    `;
+    app.appendChild(table);
 
     function dateCustomFormat(unix) {
         let date = new Date(unix * 1000);
@@ -42,28 +36,87 @@ export default (function() {
         return date;
     }
 
-    function screeningCardNumber(cn) {
-        let card = cn.slice(0,2) + '********' + cn.slice(-4);
+    function formatUser(user) {
+        let birthday = '';
+        if (user.birthday) {
+            let date = new Date(user.birthday * 1000);
+            let DD = date.getDate() < 10 ? ('0' + date.getDate()) : date.getDate();
+            let MM = (date.getMonth() + 1) < 10 ? ('0' + (date.getMonth() + 1)) : (date.getMonth() + 1);
+            let YYYY = date.getFullYear();
+
+            birthday = `<p>Birthday: ${DD}/${MM}/${YYYY}</p>`;
+        }
+        let avatar = '';
+        if (user.avatar) {
+            avatar = `<p><img src="${user.avatar}" width="100px"></p>`;
+        }
+
+        return birthday + avatar;
+    }
+
+    function formatCardNumber(cn) {
+        let card = cn.slice(0, 2) + '********' + cn.slice(-4);
         return card;
     }
 
-    let tbody = document.getElementsByTagName('tbody')[0];
+    function getUser(uid) {
+        for (let i = 0; i < users.length; i++) {
+            if (users[i].id === uid) {
+                return users[i];
+            }
+        }
+    }
+
+    function formatUserName(user) {
+        let appeal = user.gender === 'Male' ? 'Mr.' : 'Ms.';
+        return appeal + ' ' + user.first_name + ' ' + user.last_name;
+    }
+
+    function getCompany(cid) {
+        for (let i = 0; i < companies.length; i++) {
+            if (companies[i].id === cid) {
+                return companies[i];
+            }
+        }
+    }
+
+    function formatCompany(company) {
+        if (!company) {
+            return '';
+        }
+        let company_str;
+        if (company.url) {
+            company_str = `<p>Company: <a href="${company.url}" target="_blank">${company.title}</a></p>`;
+        } else {
+            company_str = `<p>Company: ${company.title}</p>`;
+        }
+        return company_str + `<p>Industry: ${company.industry}</p>`;
+    }
+
+    let tbody = table.querySelector('tbody');
+    let table_str = '';
 
     for (let i = 0; i < orders.length; i++) {
         let transaction_id = orders[i].transaction_id;
         let date = dateCustomFormat(orders[i].created_at);
-        let user_id = orders[i].user_id;
+        let user = getUser(orders[i].user_id);
         let total = orders[i].total;
-        let card_number = screeningCardNumber(orders[i].card_number);
+        let card_number = formatCardNumber(orders[i].card_number);
         let card_type = orders[i].card_type;
         let order_country = orders[i].order_country;
         let order_ip = orders[i].order_ip;
+        let company = getCompany(user.company_id);
 
-
-        tbody.innerHTML += `
-            <tr id="order_${i}">
+        table_str += `
+            <tr id="order_${orders[i].id}">
                 <td id="transaction_id">${transaction_id}</td>
-                <td id="user_info" class="user_data">${user_id}</td>
+                <td id="user_info" class="user-data">
+                    <a href="#">${formatUserName(user)}</a>
+                    <div class="user-details">
+                        ${formatUser(user)}
+                        ${formatCompany(company)}
+                    </div>
+                </td>
                 <td id="order_date">${date}</td>
                 <td id="order_amount">$${total}</td>
                 <td id="card_number">${card_number}</td>
@@ -72,4 +125,5 @@ export default (function() {
             </tr>
         `;
     }
+    tbody.innerHTML = table_str;
 })();

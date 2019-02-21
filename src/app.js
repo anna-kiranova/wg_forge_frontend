@@ -22,6 +22,7 @@ export default (function() {
     <thead style="cursor: pointer">
     ${theadStr}
     </thead>
+    <tfoot></tfoot>
     <tbody></tbody>
     `;
     app.appendChild(table);
@@ -65,6 +66,8 @@ export default (function() {
 
     let theadEl = table.querySelector('thead');
     let tbodyEl = table.querySelector('tbody');
+    let tfootEl = table.querySelector('tfoot');
+
     theadEl.addEventListener('click', (e) => {
         let dataColumn = e.target.getAttribute('data-column');
         if (!dataColumn) {
@@ -78,9 +81,7 @@ export default (function() {
 
         let compareFunc = comparers[dataColumn];
         orders.sort(compareFunc);
-        
-        /* orders.sort(); */
-        
+
         drawTbody();
     });
 
@@ -96,6 +97,9 @@ export default (function() {
     
     function drawTbody() {
         let table_str = '';
+        let countOrdersTotal = 0;
+        let totalMale = 0;
+        let countMale = 0;
         for (let i = 0; i < orders.length; i++) {
             let transaction_id = orders[i].transaction_id;
             let user = getUser(orders[i].user_id);
@@ -105,14 +109,13 @@ export default (function() {
             let order_country = orders[i].order_country;
             let order_ip = orders[i].order_ip;
             let company = getCompany(user.company_id);
+            countOrdersTotal += +orders[i].total;
+
+            if (user.gender == "Male") {
+                totalMale += +orders[i].total;
+                countMale += 1;
+            }
     
-            // let tr = createTr(tbody);
-            // appendNewTd(tr, transaction_id); // 1. create td; 2. append td to arg1; 3. td.innerText = arg2;
-            // appendUserInfoTd(tr, user)
-            // appendNewTd(tr, format.date(orders[i].created_at));
-            // appendNewTd(tr, '$' + orders[i].total);
-    
-                        
             table_str += `
                 <tr id="order_${orders[i].id}">
                     <td id="transaction_id">${transaction_id}</td>
@@ -131,7 +134,44 @@ export default (function() {
                 </tr>
             `;
         }
+
+        let median;
+        let sorted = [...orders];
+        sorted.sort(comparers.order_amount);
+        if (sorted.length % 2 === 0) {
+            median = (+sorted[sorted.length / 2 - 1].total + +sorted[sorted.length / 2].total) / 2;
+        } else {
+            median = (+sorted[Math.ceil(sorted.length / 2)].total);
+        }
+
         tbodyEl.innerHTML = table_str;
+        tfootEl.innerHTML = `
+            <tr>
+                <td>Orders Count:</td>
+                <td colspan="6">${orders.length}</td>
+            </tr>
+            <tr>
+                <td>Orders Total:</td>
+                <td colspan="6">$${format.money(countOrdersTotal)}</td>
+            </tr>
+            <tr>
+                <td>Median Value:</td>
+                <td colspan="6">$${median}</td>
+            </tr>
+            <tr>
+                <td>Average Check:</td>
+                <td colspan="6">$${format.money(countOrdersTotal / orders.length)}</td>
+            </tr>
+            <tr>
+                <td>Average Check (Female):</td>
+                <td colspan="6">$${format.money((countOrdersTotal - totalMale) / (orders.length - countMale))}</td>
+            </tr>
+            <tr>
+                <td>Average Check (Male):</td>
+                <td colspan="6">$${format.money(totalMale / countMale)}</td>
+            </tr>
+        `;
+
     }
 
     drawTbody();

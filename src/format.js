@@ -52,3 +52,7 @@ export function company(company) {
     }
     return company_str + `<p>Industry: ${company.industry}</p>`;
 }
+
+export function money(value) {
+    return Math.round(value * 100) / 100;
+}

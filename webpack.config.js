@@ -13,6 +13,7 @@ module.exports = {
       template: "./src/index.html"
     })
   ],
+  devtool: 'source-map',
   devServer: {
     contentBase: path.join(__dirname, "dist"),
     open: true,

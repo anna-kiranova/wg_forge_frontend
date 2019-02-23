@@ -4,6 +4,9 @@ import { getUser, getOrders, getCompany } from './data';
 export default (function() {
     let app = document.getElementById('app');
     let table = document.createElement('table');
+    table.classList.add('table');
+    table.classList.add('table-hover');
+
     let orig_orders = getOrders();
     let orders = [...orig_orders];
     let dataColumn;
@@ -21,8 +24,8 @@ export default (function() {
     table.innerHTML = `
     <thead style="cursor: pointer">
         <tr>
-            <th>Search:</th>
-            <th><input type="text" id="search"></th>
+            <th><label for="search">Search:</label></th>
+            <th colspan="6"><input type="text" id="search" style="width: 100%" class="form-control"></th>
         </tr>
         <tr class="headers">
             ${theadStr}

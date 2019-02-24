@@ -1,6 +1,16 @@
-import orders from '../data/orders.json';
-import users from '../data/users.json';
-import companies from '../data/companies.json';
+let orders, users, companies;
+
+export function loadData() {
+    return Promise.all([
+        fetch("/api/orders.json").then(response => response.json()),
+        fetch("/api/users.json").then(response => response.json()),
+        fetch("/api/companies.json").then(response => response.json()),
+    ]).then ((results) => {
+        orders = results[0];
+        users = results[1];
+        companies = results[2];
+    });
+}
 
 export function getUser(uid) {
     for (let i = 0; i < users.length; i++) {
